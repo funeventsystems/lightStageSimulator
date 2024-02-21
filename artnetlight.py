@@ -30,27 +30,38 @@ def get_artnet_data():
 def draw_lights(screen, artnet_data):
     for i in range(NUM_LIGHTS):
         light_index = i * 5
+        brightness_index = light_index
         red_index = light_index + 1
         blue_index = light_index + 2
         green_index = light_index + 3
         saturation_index = light_index + 4
         
+        # Get brightness from the channel before red channel
+        brightness = artnet_data[brightness_index]
         r = artnet_data[red_index]
-        g = artnet_data[green_index]
-        b = artnet_data[blue_index]
+        g = artnet_data[blue_index]
+        b = artnet_data[green_index]
         s = artnet_data[saturation_index]
         
         x = ((i + 1) / (NUM_LIGHTS + 1)) * (SCREEN_WIDTH - STAGE_WIDTH) + STAGE_WIDTH / 2
         y = SCREEN_HEIGHT - LIGHT_RADIUS
         z = STAGE_DEPTH // 2
+        
+        # Adjust color intensity based on brightness
+        r = min(int(r * brightness / 255), 255)
+        g = min(int(g * brightness / 255), 255)
+        b = min(int(b * brightness / 255), 255)
+        
         color = (r, g, b)
         pygame.draw.circle(screen, color, (int(x), int(y)), LIGHT_RADIUS)
         
-        # Draw expanding beam
+        # Draw expanding beam with adjusted brightness
         for h in range(0, SCREEN_HEIGHT, BEAM_SPEED):
             distance_to_light = abs(SCREEN_HEIGHT - h)
             beam_width = min(distance_to_light / 10, MAX_BEAM_WIDTH)
-            pygame.draw.line(screen, color, (int(x - beam_width / 2), h), (int(x + beam_width / 2), h), 2)
+            beam_brightness = min(brightness * 2, 255)  # Adjust brightness of the beam
+            beam_color = (r, g, b)  # Maintain the RGB color of the beam
+            pygame.draw.line(screen, beam_color, (int(x - beam_width / 2), h), (int(x + beam_width / 2), h), 2)
 
 # Function to draw the stage cube
 def draw_stage(screen):
